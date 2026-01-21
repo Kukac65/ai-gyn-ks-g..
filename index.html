@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<title>SmartTable AI – Voice Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{box-sizing:border-box;font-family:Segoe UI,Tahoma,sans-serif}
+body{
+    margin:0;
+    background:radial-gradient(circle at top,#0f2027,#000);
+    color:#fff;
+}
+header{
+    padding:80px 20px;
+    text-align:center;
+}
+header h1{
+    font-size:3rem;
+}
+header span{color:#00ffcc}
+header p{opacity:.85;font-size:1.2rem}
+
+.btn{
+    margin-top:30px;
+    padding:15px 40px;
+    border:none;
+    border-radius:40px;
+    background:#00ffcc;
+    color:#000;
+    font-weight:700;
+    font-size:1rem;
+    cursor:pointer;
+}
+
+section{
+    padding:60px 20px;
+    max-width:1100px;
+    margin:auto;
+}
+
+.card{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1);
+    padding:30px;
+    border-radius:20px;
+    backdrop-filter:blur(10px);
+    text-align:center;
+}
+
+.callbox{
+    margin-top:30px;
+    padding:30px;
+    border-radius:20px;
+    background:#0b0b0b;
+    border:1px solid rgba(255,255,255,0.1);
+    min-height:200px;
+}
+
+.status{
+    margin-top:15px;
+    color:#00ffcc;
+    font-weight:bold;
+}
+
+footer{
+    text-align:center;
+    padding:30px;
+    opacity:.5;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1><span>SmartTable AI</span></h1>
+    <p>AI ügynök, akivel böngészőben beszélhetsz, mintha telefonon hívnál</p>
+    <button class="btn" onclick="startCall()">📞 Hívás indítása</button>
+</header>
+
+<section>
+    <div class="card">
+        <h2>Voice AI Demo</h2>
+        <p>Beszélj az AI-hoz hanggal!</p>
+
+        <div class="callbox" id="callbox">
+            🤖 SmartTable AI: Üdv! Hogy segíthetek?
+        </div>
+        <div class="status" id="status">Várakozás…</div>
+    </div>
+</section>
+
+<footer>
+    © 2026 SmartTable AI · Free Voice Demo 🤖
+</footer>
+
+<script>
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+recognition.lang = "hu-HU";
+recognition.continuous = false;
+
+let booking = {};
+
+function speak(text){
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "hu-HU";
+    speechSynthesis.speak(utter);
+}
+
+function log(text){
+    const box = document.getElementById("callbox");
+    box.innerHTML += "<br>" + text;
+    box.scrollTop = box.scrollHeight;
+}
+
+function startCall(){
+    document.getElementById("status").innerText = "Hallgatlak…";
+    recognition.start();
+}
+
+recognition.onresult = (event)=>{
+    const userText = event.results[0][0].transcript;
+    log("👤 Vendég: " + userText);
+
+    setTimeout(()=>handleAI(userText),500);
+};
+
+recognition.onend = ()=>{
+    document.getElementById("status").innerText = "Várakozás…";
+};
+
+function handleAI(text){
+    let reply = "Értem. Kérem ismételje meg.";
+
+    if(text.match(/\d+\s*fő/)){
+        booking.people = text.match(/\d+/)[0];
+        reply = `Rendben, ${booking.people} főre. Milyen időpontra szeretné?`;
+    }
+    else if(text.match(/\d{1,2}:\d{2}/)){
+        booking.time = text.match(/\d{1,2}:\d{2}/)[0];
+        reply = `Köszönöm! Meg tudja mondani a nevét?`;
+    }
+    else if(text.length > 2 && !booking.name){
+        booking.name = text;
+        reply = `✅ Foglalás kész!\nNév: ${booking.name}\nFő: ${booking.people}\nIdő: ${booking.time}`;
+    }
+
+    log("🤖 SmartTable AI: " + reply);
+    speak(reply);
+}
+</script>
+
+</body>
+</html>
